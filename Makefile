@@ -6,15 +6,15 @@ AUDIO_FLAGS = -lsfml-audio -lsfml-system
  
 all: run
 
-run: main
-	./main
+run: shellplay
+	out/shellplay
  
-main: main.o
-	$(CC) main.o -o main 
+shellplay: main.o
+	$(CC) main.o -o out/shellplay 
  
 main.o: main.cpp
 	$(CC) -c main.cpp -o main.o 
  
 clean:
-	rm main.o
-	rm main
+	rm *.o
+	rm out/shellplay
