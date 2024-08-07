@@ -10,6 +10,8 @@ run: shellplay
 	out/shellplay
  
 shellplay: main.o
+	if [ ! -d "out" ]; then mkdir out;fi
+
 	$(CC) main.o -o out/shellplay 
  
 main.o: main.cpp
