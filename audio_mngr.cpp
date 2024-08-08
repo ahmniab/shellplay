@@ -16,6 +16,19 @@ Time __TotalDuration__ ;
 float __CurrentTime__ ;
 Sound __Sound__;
 
+void keepThreadAlive(){
+    while (1) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        __CurrentTime__ = __Sound__.getPlayingOffset().asSeconds();
+        
+    }
+}
+
+void initAudioThread(){
+    thread musicThread(keepThreadAlive );
+    musicThread.detach();
+
+}
 
 bool loadMusicFile(string path){
     __Sound__.stop();
@@ -74,16 +87,5 @@ void playMusic() {
     
     play();
     initAudioThread ();
-}
-void keepThreadAlive(){
-    while (1) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        __CurrentTime__ = __Sound__.getPlayingOffset().asSeconds();
-    }
-}
-void initAudioThread (){
-    thread musicThread(keepThreadAlive);
-    musicThread.detach();
-
 }
 
