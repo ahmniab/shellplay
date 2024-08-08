@@ -1,13 +1,11 @@
-#include <SFML/Audio.hpp>
-#include <SFML/System.hpp>
+
 #include <iostream>
 #include <thread>
 #include <atomic>
 #include <mutex>
 
-// Copyright 2020 Arthur Sonzogni. All rights reserved.
-// Use of this source code is governed by the MIT license that can be found in
-// the LICENSE file.
+#include "../audio_mngr.h"
+
 #include <memory>  // for shared_ptr, __shared_ptr_access
 #include <string>  // for operator+, to_string
 
@@ -19,53 +17,9 @@
 
 using namespace ftxui;
 
-std::atomic<bool> is_playing(false);
-std::mutex mtx;
-sf::Sound sound;
-float total_time;
-float current_time;
+
 ScreenInteractive screen = ScreenInteractive::FitComponent();
 
-
-void playMusic(const std::string& filepath /*, ScreenInteractive screen*/) {
-    sf::SoundBuffer buffer;
-    if (!buffer.loadFromFile(filepath)) {
-        std::cerr << "Error loading audio file" << std::endl;
-        return;
-    }
-    total_time =buffer.getDuration().asSeconds();
-    
-
-    // Set the buffer and play the sound
-    {
-        std::lock_guard<std::mutex> lock(mtx);
-        sound.setBuffer(buffer);
-        sound.play();
-        is_playing = true;
-    }
-
-    // Keep the application running long enough for the sound to play
-    while (sound.getStatus() == sf::Sound::Playing || sound.getStatus() == sf::Sound::Paused) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        current_time = sound.getPlayingOffset().asSeconds();
-        screen.PostEvent(Event::Custom);
-    }
-    
-  
-}
-
-void toggleMusic(const std::string& filepath) {
-    std::lock_guard<std::mutex> lock(mtx);
-    if (is_playing) {
-        sound.pause();
-        is_playing = false;
-    } else {
-        if (sound.getStatus() == sf::Sound::Paused) {
-            sound.play();
-        } 
-        is_playing = true;
-    }
-}
 
 ButtonOption Style() {
     auto option = ButtonOption::Animated();
@@ -78,35 +32,32 @@ ButtonOption Style() {
     };
     return option;
 }
+
 int main() {
-    std::string filepath = "/home/kali/src/audio_cpp/1000.wav";
-    std::thread musicThread(playMusic, filepath );
-    musicThread.detach();
-        
+    initAudioThread();
+    
 
     std::string button_label = "Play";
 
     auto button = Button(&button_label, [&] {
-        if (is_playing) {
-            toggleMusic(filepath);
+        if (isPlaying()) {
+            toggleMusic();
             button_label = "Play";
         } else {
-            toggleMusic(filepath);
+            toggleMusic();
             button_label = "Pause";
         }
     }, Style());
 
     auto component = Renderer(button, [&] {
         return vbox({
-                text( std::to_string(total_time) +" / "+ std::to_string(current_time)),
+                text( std::to_string((int)getTimeInSec()) +" / "+ std::to_string((int)getCurrTime())),
                    button->Render() | flex,
                }) | flex | border;
     });
-
+    changeMusic("/home/kali/src/audio_cpp/1000.wav");
     screen.Loop(component);
-    if (musicThread.joinable()) {
-    musicThread.join();
-  }
+
 
     return 0;
 }
