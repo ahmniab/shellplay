@@ -46,7 +46,7 @@ void keepThreadAlive(){
 void initAudioThread(){
     thread musicThread(keepThreadAlive);
     musicThread.detach();
-    cout << "tmam\n";
+    //cout << "tmam\n";
 
 }
 
